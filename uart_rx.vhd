@@ -22,16 +22,91 @@ end entity;
 
 -- Architecture implementation (INSERT YOUR IMPLEMENTATION HERE)
 architecture behavioral of UART_RX is
+
+    -- DIN SYNC
+    signal din_q1 : std_logic;
+    signal din_sync : std_logic;
+    -- Counter signals
+    signal mid : std_logic;
+    signal stop_bit : std_logic;
+    -- Control signals
+    -- Mealy
+    signal save : std_logic;
+    signal dout_vld : std_logic;
+    -- Moore
+    signal cnt_ce : std_logic;
+    signal d_cnt_res : std_logic;
+
+    -- Inner signals
+    signal clk_count : std_logic_vector(3 downto 0);
+    signal data_count : std_logic_vector(2 downto 0);
+
 begin
 
     -- Instance of RX FSM
     fsm: entity work.UART_RX_FSM
     port map (
         CLK => CLK,
-        RST => RST
+        RST => RST,
+        
+        DIN => din_sync,
+        MID => mid,
+        STOP_BIT => stop_bit,
+        
+        -- Mealy
+        SAVE => save,
+        DOUT_VLD => dout_vld,
+        -- Moore
+        CNT_CE => cnt_ce,
+        D_CNT_RES => d_cnt_res,
     );
 
-    DOUT <= (others => '0');
-    DOUT_VLD <= '0';
+    sync_flip_flops: process(CLK)
+    begin
+        if rising_edge(CLK) then
+            if RST = '1' then
+                din_q1 <= '0';
+                din_sync <= '0';
+            else
+                din_q1 <= DIN;
+                din_sync <= din_q1;
+            end if;
+        end if;
+    end process;
+
+    clock_counter: process(CLK)
+    begin
+        if (rising_edge(CLK) and (RST = '1' or cnt_ce = '0')) then
+            clk_count <= "0000";
+        elsif cnt_ce = '1' then
+            clk_count <= clk_count + 1;
+        end if;
+    end process;
+        
+    mid = '1' when clk_count = "0111" else '0';
+
+    data_counter: process(CLK)
+    begin
+        if rising_edge(CLK) then
+            if d_cnt_res = '1' then
+                data_count <= "000";
+            else
+                data_count <= data_count + 1;
+            end if;
+        end if;
+    end process;
+
+    stop_bit = '1' when data_count = "111" else '0';
+
+    shift_register: process(CLK)
+    begin
+        if rising_edge(CLK) then
+            if RST = '1' then
+                DOUT <= "00000000";
+            elsif save = '1' then
+                DOUT <= din_sync & DOUT(7 downto 1);
+            end if;
+        end if;
+    end process;
 
 end architecture;
