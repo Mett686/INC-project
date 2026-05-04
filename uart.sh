@@ -35,7 +35,8 @@ echo
 
 # Run UART testbench simulation
 echo "########## SIMULATION ##########"
-$GHDL -c $GHDLFLAGS -r testbench --wave=$SIM_FILE
+$GHDL -e $GHDLFLAGS testbench
+$GHDL -r $GHDLFLAGS testbench --wave=$SIM_FILE
 if [ $? -ne 0 ]; then
     echo "Simulation ended with error!"
     exit 1

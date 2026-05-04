@@ -103,7 +103,7 @@ begin
     stop_bit <= '1' when data_count = "111" else '0';
 
 
-    shift_register: process(CLK)
+    shift_register_process: process(CLK)
     begin
         if rising_edge(CLK) then
             if RST = '1' then
