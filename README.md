@@ -1,6 +1,6 @@
 # INC Project – Digital Systems Design
 
-University project for the **INC (Digital Systems Design)** course, written in VHDL.
+University project for the **INC (Navrh cislicovych systemu)** course, written in VHDL.
 
 ## Overview
 Hardware description and finite-state machine (FSM) design for a UART serial communication receiver (`UART_RX`), including:
